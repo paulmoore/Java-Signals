@@ -1,0 +1,7 @@
+*.classpath
+*.project
+*.svn
+*.DS_Store
+*Thumbs.db
+build
+bin
