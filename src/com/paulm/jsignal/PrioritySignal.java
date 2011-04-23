@@ -25,7 +25,6 @@
 package com.paulm.jsignal;
 
 import java.lang.reflect.Method;
-import java.util.Collection;
 import java.util.PriorityQueue;
 import java.util.logging.Level;
 
@@ -39,10 +38,11 @@ import java.util.logging.Level;
  * 
  * @author Paul Moore
  * @see com.paulm.jsignal.Signal
+ * @param E the comparable type to compare priorities of listeners
  */
-public class PrioritySignal extends Signal
+public class PrioritySignal <E extends Comparable<E>> extends Signal
 {
-	private PriorityQueue<PrioritySlot> listenerQueue;
+	private PriorityQueue<PrioritySlot<E>> listenerQueue;
 	
 	/**
 	 * Constructor
@@ -64,7 +64,7 @@ public class PrioritySignal extends Signal
 	{
 		super(params);
 		
-		listenerQueue = new PriorityQueue<PrioritySlot>(initialCapacity);
+		listenerQueue = new PriorityQueue<PrioritySlot<E>>(initialCapacity);
 	}
 	
 	/**
@@ -79,7 +79,7 @@ public class PrioritySignal extends Signal
 	 * @param priority the priority of this listener
 	 * @return the old listener keyed to the same <code>hashCode()</code> value, or null if no such listener was replaced
 	 */
-	public Object add (Object listener, String callback, boolean addOnce, int priority)
+	public Object add (Object listener, String callback, boolean addOnce, E priority)
 	{	
 		Method delegate;
 		
@@ -93,8 +93,7 @@ public class PrioritySignal extends Signal
 			return null;
 		}
 		
-		PrioritySlot newSlot = new PrioritySlot(listener, delegate, addOnce, priority);
-		
+		PrioritySlot<E> newSlot = new PrioritySlot<E>(listener, delegate, addOnce, priority);
 		Slot previous = listenerMap.put(listener, newSlot);
 		
 		if (previous != null)
@@ -116,21 +115,19 @@ public class PrioritySignal extends Signal
 	@Override
 	public Object add (Object listener, String callback, boolean addOnce)
 	{
-		return add(listener, callback, addOnce, 0);
+		return add(listener, callback, addOnce, null);
 	}
 	
 	/**
 	 * Registers a listener to this signal with a given priority.
 	 * <code>addOnce</code> defaults to false.
 	 * 
-	 * @see com.paulm.jsignal.PrioritySignal#add(Object, String, boolean, int)
-	 * 
 	 * @param listener the listener to register to this signal
 	 * @param callback the callback method, as a String, to invoke when this signal is dispatched dispatched
 	 * @param priority the priority of this listener
 	 * @return the old listener keyed to the same <code>hashCode()</code> value, or null if no such listener was replaced
 	 */
-	public Object add (Object listener, String callback, int priority)
+	public Object add (Object listener, String callback, E priority)
 	{
 		return add(listener, callback, false, priority);
 	}
@@ -141,7 +138,7 @@ public class PrioritySignal extends Signal
 	@Override
 	public Object add (Object listener, String callback)
 	{
-		return add(listener, callback, false, 0);
+		return add(listener, callback, false, null);
 	}
 
 	/* (non-Javadoc)
@@ -178,15 +175,15 @@ public class PrioritySignal extends Signal
 	/* (non-Javadoc)
 	 * @see com.paulm.jsignal.Signal#dispatch(java.lang.Object[])
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
 	public void dispatch (Object... args)
 	{
-		PrioritySlot slot;
+		PrioritySlot<E> slot;
+		PriorityQueue<PrioritySlot<E>> newQueue = new PriorityQueue<PrioritySlot<E>>(listenerQueue.size());
 		
 		while (!listenerQueue.isEmpty())
 		{
-			slot = listenerQueue.remove();
+			slot = listenerQueue.peek();
 			
 			try
 			{
@@ -195,15 +192,21 @@ public class PrioritySignal extends Signal
 			catch (Exception e)
 			{
 				logger.throwing("PrioritySignal", "dispatch", e);
-				return;
+				break;
 			}
 			
 			if (slot.getAddOnce())
 			{
 				super.remove(slot);
 			}
+			else
+			{
+				newQueue.add(slot);
+			}
+			
+			listenerQueue.remove();
 		}
 		
-		listenerQueue.addAll((Collection<? extends PrioritySlot>) listenerMap);
+		listenerQueue = newQueue;
 	}
 }

@@ -77,7 +77,7 @@
 	</target>
 	
 	<target name="run-tests" depends="compile,compile-tests" description="run the junit test cases">
-		<junit printsummary="yes" haltonfailure="no" fork="yes" showoutput="true" timeout="120000"><!--2 minute timeout-->
+		<junit printsummary="withOutAndErr" haltonfailure="no" fork="yes" timeout="60000"><!--1 minute timeout-->
 			<classpath>
 				<path refid="classpath"/>
 				<pathelement location="${classes}"/>

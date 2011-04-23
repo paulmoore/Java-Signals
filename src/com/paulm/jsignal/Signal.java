@@ -28,6 +28,7 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -48,7 +49,13 @@ public class Signal implements ISignalOwner
 	
 	protected Map<Object, Slot> listenerMap = new HashMap<Object, Slot>();
 	
-	protected static Logger logger = Logger.getLogger("com.paulm.jsignal");
+	protected static Logger logger;
+	
+	static
+	{
+		logger = Logger.getLogger(Signal.class.getPackage().getName());
+		logger.setLevel(Level.ALL);
+	}
 	
 	/**
 	 * Constructor

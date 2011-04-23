@@ -26,35 +26,30 @@ package com.paulm.jsignal;
 
 import java.lang.reflect.Method;
 
-class PrioritySlot extends Slot implements Comparable<PrioritySlot>
+class PrioritySlot <E extends Comparable<E>> extends Slot implements Comparable<PrioritySlot<E>>
 {
-	private int priority;
+	private E priority;
 	
-	public PrioritySlot (Object listener, Method delegate, boolean addOnce, int priority)
+	public PrioritySlot (Object listener, Method delegate, boolean addOnce, E priority)
 	{
 		super(listener, delegate, addOnce);
 		
 		this.priority = priority;
 	}
-
-	public int getPriority ()
+	
+	public E getPriority()
 	{
 		return priority;
 	}
 	
 	@Override
-	public int compareTo (PrioritySlot arg0)
+	public int compareTo (PrioritySlot<E> arg0)
 	{
-		if (priority < arg0.getPriority())
+		if (priority == null)
 		{
 			return -1;
 		}
 		
-		if (priority > arg0.getPriority())
-		{
-			return 1;
-		}
-		
-		return 0;
+		return priority.compareTo(arg0.getPriority());
 	}
 }

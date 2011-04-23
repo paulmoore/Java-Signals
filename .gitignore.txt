@@ -1,7 +1,9 @@
-*.classpath
-*.project
-*.svn
-*.DS_Store
-*Thumbs.db
-build
-bin
+.classpath
+.project
+.svn
+.DS_Store
+ehthumbs.db
+Icon?
+Thumbs.db
+build/*
+bin/*
