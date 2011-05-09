@@ -24,11 +24,12 @@
 
 package com.paulm.jsignal;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -45,16 +46,15 @@ import java.util.logging.Logger;
  */
 public class Signal implements ISignalOwner
 {
-	protected Class<?>[] params;
+	protected final Class<?>[] params;
 	
-	protected Map<Object, Slot> listenerMap = new HashMap<Object, Slot>();
+	protected final Map<Object, Slot> listenerMap = new HashMap<Object, Slot>();
 	
-	protected static Logger logger;
+	protected static final Logger log;
 	
 	static
 	{
-		logger = Logger.getLogger(Signal.class.getPackage().getName());
-		logger.setLevel(Level.ALL);
+		log = Logger.getLogger(Signal.class.getPackage().getName());
 	}
 	
 	/**
@@ -81,9 +81,10 @@ public class Signal implements ISignalOwner
 	 * @param callback the callback method, as a String, to invoke when this signal is dispatched
 	 * @param addOnce if true, once this signal has dispatched the listener is removed from the listener map
 	 * @return the old listener keyed to the same <code>hashCode()</code> value, or null if no such listener was replaced
+	 * @throws SignalException if a security violation occurs while retrieving the callback method, or if no such method exists
 	 */
 	@Override
-	public Object add (Object listener, String callback, boolean addOnce)
+	public Object add (Object listener, String callback, boolean addOnce) throws SignalException
 	{
 		Method delegate;
 		
@@ -91,10 +92,17 @@ public class Signal implements ISignalOwner
 		{
 			delegate = listener.getClass().getMethod(callback, params);
 		}
-		catch (Exception e)
+		catch (SecurityException e)
 		{
-			logger.throwing("Signal", "add", e);
-			return null;
+			SignalException se = new SignalException (e.getLocalizedMessage()+" listener:"+listener+" callback:"+callback);
+			log.throwing("Signal", "add", se);
+			throw se;
+		}
+		catch (NoSuchMethodException e)
+		{
+			SignalException se = new SignalException (e.getLocalizedMessage()+" listener:"+listener+" callback:"+callback);
+			log.throwing("Signal", "add", se);
+			throw se;
 		}
 		
 		Slot previous = listenerMap.put(listener, new Slot(listener, delegate, addOnce));
@@ -118,8 +126,9 @@ public class Signal implements ISignalOwner
 	 * @param listener the listener object to add
 	 * @param callback the callback method, as a String, to invoke when this signal is dispatched
 	 * @return the old listener keyed to the same <code>hashCode()</code> value, or null if no such listener was replaced
+	 * @throws SignalException if a security violation occurs while retrieving the callback method, or if no such method exists
 	 */
-	public Object add (Object listener, String callback)
+	public Object add (Object listener, String callback) throws SignalException
 	{
 		return add(listener, callback, false);
 	}
@@ -150,9 +159,10 @@ public class Signal implements ISignalOwner
 	 * @param args the argument list to dispatch to listenerMap.  The argument
 	 * list must have the same signature as the parameter list this Signal
 	 * was constructed with
+	 * @throws SignalException 
 	 */
 	@Override
-	public void dispatch (Object... args)
+	public void dispatch (Object... args) throws SignalException
 	{
 		Iterator<Slot> iterator = listenerMap.values().iterator();
 		Slot slot;
@@ -165,10 +175,23 @@ public class Signal implements ISignalOwner
 			{
 				slot.getDelegate().invoke(slot.getListener(), args);
 			}
-			catch (Exception e)
+			catch (IllegalArgumentException e)
 			{
-				logger.throwing("Signal", "dispatch", e);
-				return;
+				SignalException se = new SignalException(e.getLocalizedMessage()+" listener:"+slot.getDelegate()+" args:"+Arrays.deepToString(args));
+				log.throwing("Signal", "dispatch", se);
+				throw se;
+			}
+			catch (IllegalAccessException e)
+			{
+				SignalException se = new SignalException(e.getLocalizedMessage()+" listener:"+slot.getDelegate()+" args:"+Arrays.deepToString(args));
+				log.throwing("Signal", "dispatch", se);
+				throw se;
+			}
+			catch (InvocationTargetException e)
+			{
+				SignalException se = new SignalException(e.getLocalizedMessage()+" listener:"+slot.getDelegate()+" args:"+Arrays.deepToString(args));
+				log.throwing("Signal", "dispatch", se);
+				throw se;
 			}
 			
 			if (slot.getAddOnce())

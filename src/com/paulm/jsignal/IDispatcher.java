@@ -35,6 +35,7 @@ public interface IDispatcher
 	 * Dispatches the arguments to all listeners registered to the dispatcher.
 	 * 
 	 * @param args the arguments to dispatch with
+	 * @throws SignalException 
 	 */
-	public void dispatch (Object... args);
+	public void dispatch (Object... args) throws SignalException;
 }

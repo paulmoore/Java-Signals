@@ -4,100 +4,94 @@
 	Author        Paul Moore
 -->
 
-<project name="Java Signals" default="recorded-build" basedir=".">
-	
+<project name="Java Signals" default="build" basedir=".">
+
 	<!-- Property file -->
-	<property file="build.properties"/>
-	
+	<property file="build.properties" />
+
 	<!-- Define the java classpath -->
 	<path id="classpath">
-		<fileset dir="${lib}" includes="**/*.jar"/>
+		<fileset dir="${lib}" includes="**/*.jar" />
 	</path>
-	
+
 	<target name="clean" description="delete old build">
 		<!-- Delete the build directory -->
 		<delete includeemptydirs="true" quiet="true">
-			<fileset dir="${build}" defaultexcludes="false"/>
+			<fileset dir="${build}" defaultexcludes="false" />
 		</delete>
 	</target>
-	
-	<target name="init" depends="clean" description="make neccessary build directories">
-  		<tstamp>
-  			<format property="TODAY_US" pattern="yyyy-mm-dd-hhhh-ss" locale="en,US"/>
+
+	<target name="-init" depends="clean" description="make neccessary build directories">
+		<tstamp>
+			<format property="TODAY_US" pattern="yyyy-mm-dd-hhhh-ss" locale="en,US" />
 		</tstamp>
-  		<!-- Create the build directory -->
-  		<mkdir dir="${build}"/>
+		<!-- Create the build directory -->
+		<mkdir dir="${build}" />
 		<!-- Create the bin for class files -->
-  		<mkdir dir="${classes}"/>
+		<mkdir dir="${classes}" />
 		<!-- Create the jar directory -->
-		<mkdir dir="${jar}"/>
-		<!-- Create the junit test results directory -->
-		<mkdir dir="${test-results}"/>
+		<mkdir dir="${jar}" />
+	</target>
+
+	<target name="-compile" depends="-init" description="compile the source">
+		<javac srcdir="${src}" destdir="${classes}" debug="on" debuglevel="lines,vars,source" />
+	</target>
+
+	<target name="generate-docs" description="generate the javadocs">
 		<!-- Create the java docs directory -->
-		<mkdir dir="${javadocs}"/>
-  	</target>
-	
-  	<target name="compile" depends="init" description="compile the source">
-    	<javac srcdir="${src}" destdir="${classes}" debug="on" debuglevel="lines,vars,source"/>
-  	</target>
-	
-	<target name="generate-docs" depends="compile" description="generate the javadocs">
-	<javadoc sourcepath="${src}"
-			 destdir="${javadocs}"
-			 doctitle="Java Signals API Documentation"/>
+		<mkdir dir="${javadocs}" />
+		<javadoc sourcepath="${src}" destdir="${javadocs}" doctitle="Java Signals API Documentation" />
 	</target>
-	
-	<target name="create-manifest" description="create the manifest file for the jar to use">
-  		<manifest file="${jar}/MANIFEST.MF">
-  			<attribute name="Built-By" value="${user.name}"/>
-  			<attribute name="Project-Author" value="${project.author}"/>
-  			<section name="common">
-  		    	<attribute name="Specification-Title" value="${project.title}"/>
-  		    	<attribute name="Specification-Version" value="${project.version} ${TODAY}"/>
-  		    	<attribute name="Specification-Vendor" value="Paul Moore"/>
-  		    	</section>
-  		    <section name="com/paulm/jsignal/">
-  		    	<attribute name="Sealed" value="true"/>
-  		    </section>
-  		</manifest>
+
+	<target name="-create-manifest" description="create the manifest file for the jar to use">
+		<manifest file="${jar}/MANIFEST.MF">
+			<attribute name="Built-By" value="${user.name}" />
+			<attribute name="Project-Author" value="${project.author}" />
+			<section name="common">
+				<attribute name="Specification-Title" value="${project.title}" />
+				<attribute name="Specification-Version" value="${project.version} ${TODAY}" />
+				<attribute name="Specification-Vendor" value="Paul Moore" />
+			</section>
+			<section name="com/paulm/jsignal/">
+				<attribute name="Sealed" value="true" />
+			</section>
+		</manifest>
 	</target>
-	
-  	<target name="create-jar" depends="compile,create-manifest" description="generate signals jar library file">
-    	<jar destfile="${jar}/${project.name}-${project.version}.jar"
-  			 basedir="${classes}"
-  			 excludes="**/Test.class"
-    		 manifest="${jar}/MANIFEST.MF">
-    		<fileset file="MIT-LICENSE.txt"/>
-    	</jar>
-  		<delete file="${jar}/MANIFEST.MF"/>
-  	</target>
-	
-	<target name="compile-tests" description="compile the test source">
-		<javac srcdir="${test-src}" destdir="${classes}" classpathref="classpath" debug="on" debuglevel="lines,vars,source"/>
+
+	<target name="-create-jar" depends="-compile,-create-manifest" description="generate signals jar library file">
+		<jar destfile="${jar}/${project.name}-${project.version}.jar" basedir="${classes}" excludes="**/Test.class" manifest="${jar}/MANIFEST.MF">
+			<fileset file="MIT-LICENSE.txt" />
+		</jar>
+		<delete file="${jar}/MANIFEST.MF" />
 	</target>
-	
-	<target name="run-tests" depends="compile,compile-tests" description="run the junit test cases">
-		<junit printsummary="withOutAndErr" haltonfailure="no" fork="yes" timeout="60000"><!--1 minute timeout-->
+
+	<target name="-compile-tests" description="compile the test source">
+		<javac srcdir="${test-src}" destdir="${classes}" classpathref="classpath" debug="on" debuglevel="lines,vars,source" />
+	</target>
+
+	<target name="run-tests" depends="-compile,-compile-tests" description="run the junit test cases">
+		<!-- Create the junit test results directory -->
+		<mkdir dir="${test-results}" />
+		<junit printsummary="withOutAndErr" haltonfailure="no" fork="yes" timeout="60000">
+			<!--1 minute timeout-->
 			<classpath>
-				<path refid="classpath"/>
-				<pathelement location="${classes}"/>
+				<path refid="classpath" />
+				<pathelement location="${classes}" />
 			</classpath>
-	  		<formatter type="xml"/>
-	 		<batchtest fork="yes" todir="${test-results}">
-	    		<fileset dir="${test-src}">
-	      			<include name="**/*Test.java"/>
-	  	  		</fileset>
-	  		</batchtest>
+			<formatter type="xml" />
+			<batchtest fork="yes" todir="${test-results}">
+				<fileset dir="${test-src}">
+					<include name="**/*Test.java" />
+				</fileset>
+			</batchtest>
 		</junit>
 	</target>
-	
-	<target name="build" depends="generate-docs,create-jar,run-tests" description="build signal jar, and run the unit tests"/>
-	
-	<target name="recorded-build" description="start the build">
-		<record name="build.log" loglevel="verbose" append="false" action="start"/>
-		<antcall target="build"/>
-		<record name="build.log" action="stop"/>
-		<move file="build.log" todir="${build}"/>
+
+	<target name="build" description="build the jsignal library">
+		<record name="build.log" loglevel="verbose" append="false" action="start" />
+		<antcall target="-create-jar" />
+		<record name="build.log" action="stop" />
+		<move file="build.log" todir="${build}" />
 	</target>
 
 </project>

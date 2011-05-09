@@ -42,7 +42,7 @@ public interface ISignal
 	 * @param addOnce if true, once this signal has dispatched the listener will be unregistered to this signal
 	 * @return the previous listener with the same <code>Object.hasCode()</code> value as the listener argument, or null if no such listener exists
 	 */
-	public Object add (Object listener, String callback, boolean addOnce);
+	public Object add (Object listener, String callback, boolean addOnce) throws SignalException;
 	
 	/**
 	 * Unregisters a listener from this signal.

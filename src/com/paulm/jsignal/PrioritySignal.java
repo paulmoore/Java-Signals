@@ -24,9 +24,10 @@
 
 package com.paulm.jsignal;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.PriorityQueue;
-import java.util.logging.Level;
 
 /**
  * The PrioritySignal class is an extension of Signal that dispatches to its
@@ -38,7 +39,6 @@ import java.util.logging.Level;
  * 
  * @author Paul Moore
  * @see com.paulm.jsignal.Signal
- * @param E the comparable type to compare priorities of listeners
  */
 public class PrioritySignal <E extends Comparable<E>> extends Signal
 {
@@ -78,8 +78,9 @@ public class PrioritySignal <E extends Comparable<E>> extends Signal
 	 * @param addOnce if true, this listener will be unregistered to this signal the next time it is dispatched
 	 * @param priority the priority of this listener
 	 * @return the old listener keyed to the same <code>hashCode()</code> value, or null if no such listener was replaced
+	 * @throws SignalException if a security violation occurs while retrieving the callback method, or if no such method exists
 	 */
-	public Object add (Object listener, String callback, boolean addOnce, E priority)
+	public Object add (Object listener, String callback, boolean addOnce, E priority) throws SignalException
 	{	
 		Method delegate;
 		
@@ -87,10 +88,17 @@ public class PrioritySignal <E extends Comparable<E>> extends Signal
 		{
 			delegate = listener.getClass().getMethod(callback, params);
 		}
-		catch (Exception e)
+		catch (SecurityException e)
 		{
-			logger.throwing("PrioritySignal", "add", e);
-			return null;
+			SignalException se = new SignalException (e.getLocalizedMessage()+" listener:"+listener+" callback:"+callback+" priority:"+priority);
+			log.throwing("PrioritySignal", "add", se);
+			throw se;
+		}
+		catch (NoSuchMethodException e)
+		{
+			SignalException se = new SignalException (e.getLocalizedMessage()+" listener:"+listener+" callback:"+callback+" priority:"+priority);
+			log.throwing("PrioritySignal", "add", se);
+			throw se;
 		}
 		
 		PrioritySlot<E> newSlot = new PrioritySlot<E>(listener, delegate, addOnce, priority);
@@ -100,7 +108,7 @@ public class PrioritySignal <E extends Comparable<E>> extends Signal
 		{
 			if (!listenerQueue.remove(previous))
 			{
-				logger.logp(Level.WARNING, "PrioritySignal", "add", "Previous listener was found in listener map: "+listener+" but couldn't be found in listener queue!");
+				log.warning("Previous listener was found in listener map:"+listener+" but couldn't be found in listener queue!");
 			}
 		}
 		
@@ -113,7 +121,7 @@ public class PrioritySignal <E extends Comparable<E>> extends Signal
 	 * @see com.paulm.jsignal.Signal#add(java.lang.Object, java.lang.String, boolean)
 	 */
 	@Override
-	public Object add (Object listener, String callback, boolean addOnce)
+	public Object add (Object listener, String callback, boolean addOnce) throws SignalException
 	{
 		return add(listener, callback, addOnce, null);
 	}
@@ -126,8 +134,9 @@ public class PrioritySignal <E extends Comparable<E>> extends Signal
 	 * @param callback the callback method, as a String, to invoke when this signal is dispatched dispatched
 	 * @param priority the priority of this listener
 	 * @return the old listener keyed to the same <code>hashCode()</code> value, or null if no such listener was replaced
+	 * @throws SignalException if a security violation occurs while retrieving the callback method, or if no such method exists
 	 */
-	public Object add (Object listener, String callback, E priority)
+	public Object add (Object listener, String callback, E priority) throws SignalException
 	{
 		return add(listener, callback, false, priority);
 	}
@@ -136,7 +145,7 @@ public class PrioritySignal <E extends Comparable<E>> extends Signal
 	 * @see com.paulm.jsignal.Signal#add(java.lang.Object, java.lang.String)
 	 */
 	@Override
-	public Object add (Object listener, String callback)
+	public Object add (Object listener, String callback) throws SignalException
 	{
 		return add(listener, callback, false, null);
 	}
@@ -151,7 +160,7 @@ public class PrioritySignal <E extends Comparable<E>> extends Signal
 		{
 			if (!listenerQueue.remove(listener))
 			{
-				logger.logp(Level.WARNING, "PrioritySignal", "remove", "Listener was removed from the listener map:"+listener+" but could not be found in the listener queue!");
+				log.warning("Listener was removed from the listener map:"+listener+" but could not be found in the listener queue!");
 				return false;
 			}
 			
@@ -176,7 +185,7 @@ public class PrioritySignal <E extends Comparable<E>> extends Signal
 	 * @see com.paulm.jsignal.Signal#dispatch(java.lang.Object[])
 	 */
 	@Override
-	public void dispatch (Object... args)
+	public void dispatch (Object... args) throws SignalException
 	{
 		PrioritySlot<E> slot;
 		PriorityQueue<PrioritySlot<E>> newQueue = new PriorityQueue<PrioritySlot<E>>(listenerQueue.size());
@@ -189,10 +198,23 @@ public class PrioritySignal <E extends Comparable<E>> extends Signal
 			{
 				slot.getDelegate().invoke(slot.getListener(), args);
 			}
-			catch (Exception e)
+			catch (IllegalArgumentException e)
 			{
-				logger.throwing("PrioritySignal", "dispatch", e);
-				break;
+				SignalException se = new SignalException (e.getLocalizedMessage()+" listener:"+slot.getDelegate()+" args:"+Arrays.deepToString(args));
+				log.throwing("PrioritySignal", "add", se);
+				throw se;
+			}
+			catch (IllegalAccessException e)
+			{
+				SignalException se = new SignalException (e.getLocalizedMessage()+" listener:"+slot.getDelegate()+" args:"+Arrays.deepToString(args));
+				log.throwing("PrioritySignal", "add", se);
+				throw se;
+			}
+			catch (InvocationTargetException e)
+			{
+				SignalException se = new SignalException (e.getLocalizedMessage()+" listener:"+slot.getDelegate()+" args:"+Arrays.deepToString(args));
+				log.throwing("PrioritySignal", "add", se);
+				throw se;
 			}
 			
 			if (slot.getAddOnce())
