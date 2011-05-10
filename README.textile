@@ -64,7 +64,7 @@ class ATM
 	}
 }</code></pre>
 
-<code><pre>// using the Java Signals event model for priority based event dispatching
+<pre><code>// using the Java Signals event model for priority based event dispatching
 import com.paulm.jsignal.PrioritySignal;
 import com.paulm.jsignal.SignalException;
 
@@ -130,4 +130,4 @@ class ATM
 h3. Links
 
  * "Robert Penner's original Signals API for AS3":https://github.com/robertpenner/as3-signals
- * Feel free to contact me at paulahmoore@shaw.ca with any questions/comments/concerns/critiques/etc
+ * Feel free to contact me at <b>paulahmoore@shaw.ca</b> with any questions/comments/concerns/critiques/etc
