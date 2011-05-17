@@ -26,7 +26,7 @@ package com.paulm.jsignal;
 
 import java.lang.reflect.Method;
 
-class PrioritySlot <E extends Comparable<E>> extends Slot implements Comparable<PrioritySlot<E>>
+final class PrioritySlot <E extends Comparable<E>> extends Slot implements Comparable<PrioritySlot<E>>
 {
 	private E priority;
 	

@@ -24,42 +24,48 @@
 
 package com.paulm.jsignal;
 
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 
-class Slot implements ISlot
+final class WeakSlot implements ISlot
 {
-	private Object listener;
+	private WeakReference<Object> listenerReference;
 	private Method delegate;
 	private boolean addOnce;
 	
-	public Slot (Object listener, Method delegate, boolean addOnce)
+	public WeakSlot (Object listener, Method delegate, boolean addOnce)
 	{
-		this.listener = listener;
+		listenerReference = new WeakReference<Object>(listener);
 		this.delegate = delegate;
 		this.addOnce = addOnce;
 	}
 	
 	@Override
-	public Object getListener ()
+	public boolean getAddOnce()
 	{
-		return listener;
+		return addOnce;
 	}
-	
+
 	@Override
-	public Method getDelegate ()
+	public Method getDelegate()
 	{
 		return delegate;
 	}
-	
+
 	@Override
-	public boolean getAddOnce ()
+	public Object getListener()
 	{
-		return addOnce;
+		return listenerReference.get();
 	}
 	
 	@Override
 	public int hashCode ()
 	{
+		Object listener = listenerReference.get();
+		if (listener == null)
+		{
+			return 0; // equivalent to System.identifyHashCode(null)
+		}
 		return listener.hashCode();
 	}
 	
@@ -71,6 +77,6 @@ class Slot implements ISlot
 			return obj == this;
 		}
 		
-		return listener.equals(obj);
+		return obj.equals(listenerReference.get());
 	}
 }

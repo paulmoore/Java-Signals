@@ -48,13 +48,14 @@ public class Signal implements ISignalOwner
 {
 	protected final Class<?>[] params;
 	
-	protected final Map<Object, Slot> listenerMap = new HashMap<Object, Slot>();
+	protected final Map<Object, ISlot> listenerMap = new HashMap<Object, ISlot>();
 	
 	protected static final Logger log;
 	
 	static
 	{
-		log = Logger.getLogger(Signal.class.getPackage().getName());
+		log = Logger.getLogger(WeakSignal.class.getPackage().getName());
+		System.out.println(log.getName());
 	}
 	
 	/**
@@ -94,18 +95,18 @@ public class Signal implements ISignalOwner
 		}
 		catch (SecurityException e)
 		{
-			SignalException se = new SignalException (e.getLocalizedMessage()+" listener:"+listener+" callback:"+callback);
+			SignalException se = new SignalException (e+" listener:"+listener+" callback:"+callback);
 			log.throwing("Signal", "add", se);
 			throw se;
 		}
 		catch (NoSuchMethodException e)
 		{
-			SignalException se = new SignalException (e.getLocalizedMessage()+" listener:"+listener+" callback:"+callback);
+			SignalException se = new SignalException (e+" listener:"+listener+" callback:"+callback);
 			log.throwing("Signal", "add", se);
 			throw se;
 		}
 		
-		Slot previous = listenerMap.put(listener, new Slot(listener, delegate, addOnce));
+		ISlot previous = listenerMap.put(listener, new Slot(listener, delegate, addOnce));
 		
 		return previous == null ? null : previous.getListener();
 	}
@@ -164,8 +165,8 @@ public class Signal implements ISignalOwner
 	@Override
 	public void dispatch (Object... args) throws SignalException
 	{
-		Iterator<Slot> iterator = listenerMap.values().iterator();
-		Slot slot;
+		Iterator<ISlot> iterator = listenerMap.values().iterator();
+		ISlot slot;
 		
 		while (iterator.hasNext())
 		{
@@ -177,19 +178,19 @@ public class Signal implements ISignalOwner
 			}
 			catch (IllegalArgumentException e)
 			{
-				SignalException se = new SignalException(e.getLocalizedMessage()+" listener:"+slot.getDelegate()+" args:"+Arrays.deepToString(args));
+				SignalException se = new SignalException(e+" listener:"+slot.getDelegate()+" args:"+Arrays.deepToString(args));
 				log.throwing("Signal", "dispatch", se);
 				throw se;
 			}
 			catch (IllegalAccessException e)
 			{
-				SignalException se = new SignalException(e.getLocalizedMessage()+" listener:"+slot.getDelegate()+" args:"+Arrays.deepToString(args));
+				SignalException se = new SignalException(e+" listener:"+slot.getDelegate()+" args:"+Arrays.deepToString(args));
 				log.throwing("Signal", "dispatch", se);
 				throw se;
 			}
 			catch (InvocationTargetException e)
 			{
-				SignalException se = new SignalException(e.getLocalizedMessage()+" listener:"+slot.getDelegate()+" args:"+Arrays.deepToString(args));
+				SignalException se = new SignalException(e+" listener:"+slot.getDelegate()+" args:"+Arrays.deepToString(args));
 				log.throwing("Signal", "dispatch", se);
 				throw se;
 			}
@@ -211,7 +212,7 @@ public class Signal implements ISignalOwner
 	@Override
 	public boolean containsListener (Object listener)
 	{
-		Slot slot = listenerMap.get(listener);
+		ISlot slot = listenerMap.get(listener);
 
 		return slot == null ? false : slot.getListener().equals(listener);
 	}

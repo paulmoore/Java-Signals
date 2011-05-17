@@ -11,6 +11,8 @@ h1. A new approach to events in Java.
 
 h2. Examples
 
+h3. Basic Signal Example
+
 <pre><code>// using the Java Signals event model in a simple banking example
 import com.paulm.jsignal.Signal;
 import com.paulm.jsignal.SignalException;
@@ -64,70 +66,36 @@ class ATM
 	}
 }</code></pre>
 
+h3. PrioritySignal Example
+
 <pre><code>// using the Java Signals event model for priority based event dispatching
-import com.paulm.jsignal.PrioritySignal;
-import com.paulm.jsignal.SignalException;
 
-public class BankApp
-{
-	// for display purposes only
-	private String priority;
-	
-	public static void main (String args[])
-	{
-		BankApp lowPriorityApp = new BankApp();
-		lowPriorityApp.priority = "LOW";
-		BankApp highPriorityApp = new BankApp();
-		highPriorityApp.priority = "HIGH";
-		ATM atm = new ATM();
-		try
-		{
-			// add the high and low priority handlers
-			// note that Integers are compared by their natural ordering, so a lower number has a higher priority in this case
-			atm.transactionComplete.add(lowPriorityApp, "handleNewBalance", 1);
-			atm.transactionComplete.add(highPriorityApp, "handleNewBalance", 0);
-		}
-		catch (SignalException e)
-		{
-			e.printStackTrace();
-		}
-		atm.doTransaction();
-	}
+//...
+// we can specify generically a comparable type to use as priority, in this case we will use Integers
+PrioritySignal<Integer> transactionComplete = new PrioritySignal<Integer>(String.class, double.class);
+//...
 
-	public void handleNewBalance (String name, double balance)
-	{
-		System.out.println("New balance recieved with "+priority+" priority, name:"+name+" balance:"+balance);
-	}
-}
+// add the high and low priority handlers
+// note that Integers are compared by their natural ordering, so a lower number has a higher priority in this case
+atm.transactionComplete.add(lowPriorityApp, "handleNewBalance", 1);
+atm.transactionComplete.add(highPriorityApp, "handleNewBalance", 0);</code></pre>
 
-class ATM
-{
-	protected final PrioritySignal<Integer> transactionComplete;
-	
-	public ATM ()
-	{
-		// we can specify generically a comparable type to use as priority, in this case we will use Integers
-		transactionComplete = new PrioritySignal<Integer>(String.class, double.class);
-	}
-	
-	public void doTransaction ()
-	{
-		// do something
-		try
-		{
-			// dispatch the event; to enforce strict-typing of event data, the data types of the arguments must match up with formal parameters
-			transactionComplete.dispatch("Paul", 17.06);
-		}
-		catch (SignalException e)
-		{
-			e.printStackTrace();
-		}
-	}
-}</code></pre>
+h3. WeakSignal Example
+
+<pre><code>// using WeakSignals for memory sensitive code
+
+//...
+WeakSignal signal = new WeakSignal();
+Listener listener = new Listener();
+signal.add(listener, "callback");
+listener = null;
+//... after garbage collection
+
+signal.dispatch(); // listener was garbaged collected and automatically removed as a listener from the WeakSignal instance</code></pre>
 
 *Note:* Because native AWT events haven't yet been wrapped by Java Signals, there is no need to post a side by side comparison of the two methods.  You can find Oracle's tutorial on events "here":http://download.oracle.com/javase/tutorial/uiswing/events/index.html
 
-h3. Links
+h2. Links
 
  * "Robert Penner's original Signals API for AS3":https://github.com/robertpenner/as3-signals
  * Feel free to contact me at <b>paulahmoore@shaw.ca</b> with any questions/comments/concerns/critiques/etc

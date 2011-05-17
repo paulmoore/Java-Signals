@@ -40,9 +40,9 @@ import java.util.PriorityQueue;
  * @author Paul Moore
  * @see com.paulm.jsignal.Signal
  */
-public class PrioritySignal <E extends Comparable<E>> extends Signal
+public final class PrioritySignal <E extends Comparable<E>> extends Signal
 {
-	private PriorityQueue<PrioritySlot<E>> listenerQueue;
+	private PriorityQueue<ISlot> listenerQueue;
 	
 	/**
 	 * Constructor
@@ -64,7 +64,7 @@ public class PrioritySignal <E extends Comparable<E>> extends Signal
 	{
 		super(params);
 		
-		listenerQueue = new PriorityQueue<PrioritySlot<E>>(initialCapacity);
+		listenerQueue = new PriorityQueue<ISlot>(initialCapacity);
 	}
 	
 	/**
@@ -90,19 +90,19 @@ public class PrioritySignal <E extends Comparable<E>> extends Signal
 		}
 		catch (SecurityException e)
 		{
-			SignalException se = new SignalException (e.getLocalizedMessage()+" listener:"+listener+" callback:"+callback+" priority:"+priority);
+			SignalException se = new SignalException (e+" listener:"+listener+" callback:"+callback+" priority:"+priority);
 			log.throwing("PrioritySignal", "add", se);
 			throw se;
 		}
 		catch (NoSuchMethodException e)
 		{
-			SignalException se = new SignalException (e.getLocalizedMessage()+" listener:"+listener+" callback:"+callback+" priority:"+priority);
+			SignalException se = new SignalException (e+" listener:"+listener+" callback:"+callback+" priority:"+priority);
 			log.throwing("PrioritySignal", "add", se);
 			throw se;
 		}
 		
-		PrioritySlot<E> newSlot = new PrioritySlot<E>(listener, delegate, addOnce, priority);
-		Slot previous = listenerMap.put(listener, newSlot);
+		ISlot newSlot = new PrioritySlot<E>(listener, delegate, addOnce, priority);
+		ISlot previous = listenerMap.put(listener, newSlot);
 		
 		if (previous != null)
 		{
@@ -187,8 +187,8 @@ public class PrioritySignal <E extends Comparable<E>> extends Signal
 	@Override
 	public void dispatch (Object... args) throws SignalException
 	{
-		PrioritySlot<E> slot;
-		PriorityQueue<PrioritySlot<E>> newQueue = new PriorityQueue<PrioritySlot<E>>(listenerQueue.size());
+		ISlot slot;
+		PriorityQueue<ISlot> newQueue = new PriorityQueue<ISlot>(listenerQueue.size());
 		
 		while (!listenerQueue.isEmpty())
 		{
@@ -200,19 +200,19 @@ public class PrioritySignal <E extends Comparable<E>> extends Signal
 			}
 			catch (IllegalArgumentException e)
 			{
-				SignalException se = new SignalException (e.getLocalizedMessage()+" listener:"+slot.getDelegate()+" args:"+Arrays.deepToString(args));
+				SignalException se = new SignalException (e+" listener:"+slot.getDelegate()+" args:"+Arrays.deepToString(args));
 				log.throwing("PrioritySignal", "add", se);
 				throw se;
 			}
 			catch (IllegalAccessException e)
 			{
-				SignalException se = new SignalException (e.getLocalizedMessage()+" listener:"+slot.getDelegate()+" args:"+Arrays.deepToString(args));
+				SignalException se = new SignalException (e+" listener:"+slot.getDelegate()+" args:"+Arrays.deepToString(args));
 				log.throwing("PrioritySignal", "add", se);
 				throw se;
 			}
 			catch (InvocationTargetException e)
 			{
-				SignalException se = new SignalException (e.getLocalizedMessage()+" listener:"+slot.getDelegate()+" args:"+Arrays.deepToString(args));
+				SignalException se = new SignalException (e+" listener:"+slot.getDelegate()+" args:"+Arrays.deepToString(args));
 				log.throwing("PrioritySignal", "add", se);
 				throw se;
 			}

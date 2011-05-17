@@ -52,7 +52,7 @@ public class SignalTest extends TestCase
 		}
 		catch (SignalException e)
 		{
-			fail(e.getLocalizedMessage());
+			fail(e.toString());
 		}
 		assertTrue(spySignal.containsListener(listener));
 		assertEquals(1, spySignal.numListeners());
@@ -89,7 +89,7 @@ public class SignalTest extends TestCase
 		}
 		catch (SignalException e)
 		{
-			fail(e.getLocalizedMessage());
+			fail(e.toString());
 		}
 	}
 
@@ -105,7 +105,7 @@ public class SignalTest extends TestCase
 		}
 		catch (SignalException e)
 		{
-			fail(e.getLocalizedMessage());
+			fail(e.toString());
 		}
 		verify(mockListener, times(1)).callback();
 		verify(mockListener, never()).callback(anyInt());
@@ -126,7 +126,7 @@ public class SignalTest extends TestCase
 		}
 		catch (SignalException e)
 		{
-			fail(e.getLocalizedMessage());
+			fail(e.toString());
 		}
 		verify(mockListener, times(3)).callback();
 	}
@@ -143,7 +143,7 @@ public class SignalTest extends TestCase
 		}
 		catch (SignalException e)
 		{
-			fail(e.getLocalizedMessage());
+			fail(e.toString());
 		}
 		verify(mockListener).callback(1);
 		verify(mockListener, times(1)).callback(anyInt());
@@ -160,7 +160,7 @@ public class SignalTest extends TestCase
 		}
 		catch (SignalException e)
 		{
-			fail(e.getLocalizedMessage());
+			fail(e.toString());
 		}
 		int arg0 = 1;
 		Object arg1 = new Object();
@@ -171,7 +171,7 @@ public class SignalTest extends TestCase
 		}
 		catch (SignalException e)
 		{
-			fail(e.getLocalizedMessage());
+			fail(e.toString());
 		}
 		verify(mockListener, times(1)).callback(arg0, arg1, arg2);
 		verify(mockListener, never()).callback();
@@ -210,14 +210,14 @@ public class SignalTest extends TestCase
 		}
 		catch (SignalException e)
 		{
-			fail(e.getLocalizedMessage());
+			fail(e.toString());
 		}
 		verify(mockListener, times(1)).callback();
 		assertEquals(0, signal.numListeners());
 	}
 	
 	@Test
-	public void test_removed_listener_dosnt_fire ()
+	public void test_removed_listener_doesnt_fire ()
 	{
 		Signal signal = new Signal();
 		SignalListener mockListener = mock(SignalListener.class);
@@ -229,14 +229,14 @@ public class SignalTest extends TestCase
 		}
 		catch (SignalException e)
 		{
-			fail(e.getLocalizedMessage());
+			fail(e.toString());
 		}
 		verify(mockListener, never()).callback();
 		assertEquals(0, signal.numListeners());
 	}
 	
 	@Test
-	public void test_listener_added_twice_dosnt_duplicate ()
+	public void test_listener_added_twice_doesnt_duplicate ()
 	{
 		Signal signal = new Signal();
 		SignalListener mockListener = mock(SignalListener.class);
@@ -249,13 +249,13 @@ public class SignalTest extends TestCase
 		}
 		catch (SignalException e)
 		{
-			fail(e.getLocalizedMessage());
+			fail(e.toString());
 		}
 		verify(mockListener, times(1)).callback();
 	}
 	
 	@Test
-	public void test_adding_null_dosnt_add_listener ()
+	public void test_adding_null_doesnt_add_listener ()
 	{
 		Signal signal = new Signal();
 		try
@@ -265,7 +265,7 @@ public class SignalTest extends TestCase
 		}
 		catch (SignalException e)
 		{
-			fail(e.getLocalizedMessage());
+			fail(e.toString());
 		}
 		catch (NullPointerException expected)
 		{
