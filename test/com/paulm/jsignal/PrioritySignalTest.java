@@ -27,6 +27,7 @@ package com.paulm.jsignal;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import junit.framework.TestCase;
 
@@ -106,5 +107,46 @@ public class PrioritySignalTest extends TestCase
 		priority.verify(mockListenerFirst, times(1)).callback();
 		priority.verify(mockListenerThird, times(1)).callback();
 		verify(mockListenerSecond, times(1)).callback();
+	}
+	
+	@Test
+	public void test_listener_can_be_removed_before_dispatch ()
+	{
+	    	PrioritySignal<Integer> signal = new PrioritySignal<Integer>();
+	    	SignalListener listener = mock(SignalListener.class);
+	    	try
+	    	{
+	    	    	signal.add(listener, "callback", 0);
+	    	    	assertEquals(1, signal.numListeners());
+	    	    	signal.remove(listener);
+	    	    	assertEquals(0, signal.numListeners());
+	    	    	verify(listener, never()).callback();
+	    	}
+	    	catch (SignalException e)
+	    	{
+	    	    fail(e.toString());
+	    	}
+	}
+	
+	@Test
+	public void test_listener_can_be_removed_after_dispatch ()
+	{
+	    	PrioritySignal<Integer> signal = new PrioritySignal<Integer>();
+	    	SignalListener listener = mock(SignalListener.class);
+	    	try
+	    	{
+	    	    	signal.add(listener, "callback", 0);
+	    	    	assertEquals(1, signal.numListeners());
+	    	    	signal.dispatch();
+	    	    	verify(listener, times(1)).callback();
+	    	    	signal.remove(listener);
+	    	    	assertEquals(0, signal.numListeners());
+	    	    	signal.dispatch();
+	    	    	verify(listener, times(1)).callback();
+	    	}
+	    	catch (SignalException e)
+	    	{
+	    	    fail(e.toString());
+	    	}
 	}
 }

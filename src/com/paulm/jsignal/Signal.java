@@ -54,8 +54,7 @@ public class Signal implements ISignalOwner
 	
 	static
 	{
-		log = Logger.getLogger(WeakSignal.class.getPackage().getName());
-		System.out.println(log.getName());
+		log = Logger.getLogger(Signal.class.getPackage().getName());
 	}
 	
 	/**

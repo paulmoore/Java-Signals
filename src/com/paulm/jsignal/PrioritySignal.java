@@ -27,6 +27,7 @@ package com.paulm.jsignal;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.PriorityQueue;
 
 /**
@@ -158,13 +159,19 @@ public final class PrioritySignal <E extends Comparable<E>> extends Signal
 	{
 		if (super.remove(listener))
 		{
-			if (!listenerQueue.remove(listener))
-			{
-				log.warning("Listener was removed from the listener map:"+listener+" but could not be found in the listener queue!");
-				return false;
-			}
+		    	Iterator<ISlot> it = listenerQueue.iterator();
+		    	while (it.hasNext())
+		    	{
+		    	    	if (it.next().equals(listener))
+		    	    	{
+		    	    	    	it.remove();
+		    	    	    	return true;
+		    	    	}
+		    	}
+		    	
+			log.warning("Listener was removed from the listener map:"+listener+" but could not be found in the listener queue!");
 			
-			return true;
+			return false;
 		}
 		
 		return false;
@@ -187,12 +194,11 @@ public final class PrioritySignal <E extends Comparable<E>> extends Signal
 	@Override
 	public void dispatch (Object... args) throws SignalException
 	{
-		ISlot slot;
-		PriorityQueue<ISlot> newQueue = new PriorityQueue<ISlot>(listenerQueue.size());
+		PriorityQueue<ISlot> newQueue = new PriorityQueue<ISlot>(Math.max(11, listenerQueue.size()));
 		
 		while (!listenerQueue.isEmpty())
 		{
-			slot = listenerQueue.peek();
+			ISlot slot = listenerQueue.remove();
 			
 			try
 			{
@@ -225,8 +231,6 @@ public final class PrioritySignal <E extends Comparable<E>> extends Signal
 			{
 				newQueue.add(slot);
 			}
-			
-			listenerQueue.remove();
 		}
 		
 		listenerQueue = newQueue;
