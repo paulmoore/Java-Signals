@@ -1,28 +1,6 @@
-/* 
- * Copyright (c) 2011 Paul Moore
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following
- * conditions:
- * 
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- */
+// http://paulmoore.mit-license.org/
 
-package com.paulm.jsignal;
+package jsignal;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -41,29 +19,17 @@ import java.util.logging.Logger;
  * This class logs to the </code>"com.paulm.jsignal"</code> Logger potential problems.
  * 
  * This is a port of Robert Penner's Signals for ActionScript 3.0
- * 
- * @author Paul Moore
  */
-public class Signal implements ISignalOwner
-{
+public class Signal implements ISignalOwner {
 	protected final Class<?>[] params;
-	
 	protected final Map<Object, ISlot> listenerMap = new HashMap<Object, ISlot>();
-	
-	protected static final Logger log;
-	
-	static
-	{
-		log = Logger.getLogger(Signal.class.getPackage().getName());
-	}
 	
 	/**
 	 * Constructor
 	 * 
 	 * @param params the parameter types (as a Class instance) that this signal will dispatch as event data
 	 */
-	public Signal (Class<?>... params)
-	{
+	public Signal(Class<?>... params) {
 		this.params = params;
 	}
 	
@@ -84,29 +50,16 @@ public class Signal implements ISignalOwner
 	 * @throws SignalException if a security violation occurs while retrieving the callback method, or if no such method exists
 	 */
 	@Override
-	public Object add (Object listener, String callback, boolean addOnce) throws SignalException
-	{
+	public Object add (Object listener, String callback, boolean addOnce) {
 		Method delegate;
-		
-		try
-		{
+		try {
 			delegate = listener.getClass().getMethod(callback, params);
+		} catch (SecurityException e) {
+			throw new SignalException("Could not access method `"+listener.getClass().getName()+"."+callback+"`", e);
+		} catch (NoSuchMethodException e) {
+			throw new SignalException("Could not find method `"+listener.getClass().getName()+"."+callback+"`", e);
 		}
-		catch (SecurityException e)
-		{
-			SignalException se = new SignalException (e+" listener:"+listener+" callback:"+callback);
-			log.throwing("Signal", "add", se);
-			throw se;
-		}
-		catch (NoSuchMethodException e)
-		{
-			SignalException se = new SignalException (e+" listener:"+listener+" callback:"+callback);
-			log.throwing("Signal", "add", se);
-			throw se;
-		}
-		
 		ISlot previous = listenerMap.put(listener, new Slot(listener, delegate, addOnce));
-		
 		return previous == null ? null : previous.getListener();
 	}
 	
@@ -128,8 +81,7 @@ public class Signal implements ISignalOwner
 	 * @return the old listener keyed to the same <code>hashCode()</code> value, or null if no such listener was replaced
 	 * @throws SignalException if a security violation occurs while retrieving the callback method, or if no such method exists
 	 */
-	public Object add (Object listener, String callback) throws SignalException
-	{
+	public Object add(Object listener, String callback) {
 		return add(listener, callback, false);
 	}
 	
@@ -140,16 +92,14 @@ public class Signal implements ISignalOwner
 	 * @return if the listener was successfully removed
 	 */
 	@Override
-	public boolean remove (Object listener)
-	{
+	public boolean remove(Object listener) {
 		return listenerMap.remove(listener) != null;
 	}
 	
 	/* (non-Javadoc)
 	 * @see com.paulm.jsignal.ISignalOwner#removeAll()
 	 */
-	public void removeAll ()
-	{
+	public void removeAll () {
 		listenerMap.clear();
 	}
 	
@@ -159,43 +109,23 @@ public class Signal implements ISignalOwner
 	 * @param args the argument list to dispatch to listenerMap.  The argument
 	 * list must have the same signature as the parameter list this Signal
 	 * was constructed with
-	 * @throws SignalException 
+	 * @throws SignalException if the wrong arguments were supplied, or a callback could not be accessed or invoked
 	 */
 	@Override
-	public void dispatch (Object... args) throws SignalException
-	{
+	public void dispatch(Object... args) {
 		Iterator<ISlot> iterator = listenerMap.values().iterator();
-		ISlot slot;
-		
-		while (iterator.hasNext())
-		{
-			slot = iterator.next();
-			
-			try
-			{
+		while (iterator.hasNext()) {
+			ISlot slot = iterator.next();
+			try {
 				slot.getDelegate().invoke(slot.getListener(), args);
+			} catch (IllegalArgumentException e) {
+				throw new SignalException("Method "+slot.getDelegate()+" received an invalid argument "+Arrays.deepToString(args), e);
+			} catch (IllegalAccessException e) {
+				throw new SignalException("Could not access method "+slot.getDelegate(), e);
+			} catch (InvocationTargetException e) {
+				throw new SignalException("Could not invoke method "+slot.getDelegate(), e);
 			}
-			catch (IllegalArgumentException e)
-			{
-				SignalException se = new SignalException(e+" listener:"+slot.getDelegate()+" args:"+Arrays.deepToString(args));
-				log.throwing("Signal", "dispatch", se);
-				throw se;
-			}
-			catch (IllegalAccessException e)
-			{
-				SignalException se = new SignalException(e+" listener:"+slot.getDelegate()+" args:"+Arrays.deepToString(args));
-				log.throwing("Signal", "dispatch", se);
-				throw se;
-			}
-			catch (InvocationTargetException e)
-			{
-				SignalException se = new SignalException(e+" listener:"+slot.getDelegate()+" args:"+Arrays.deepToString(args));
-				log.throwing("Signal", "dispatch", se);
-				throw se;
-			}
-			
-			if (slot.getAddOnce())
-			{
+			if (slot.getAddOnce()) {
 				iterator.remove();
 			}
 		}
@@ -209,10 +139,8 @@ public class Signal implements ISignalOwner
 	 * is equal to the listener in question given by the result of the <code>equals(Object)</code> method
 	 */
 	@Override
-	public boolean containsListener (Object listener)
-	{
+	public boolean containsListener(Object listener) {
 		ISlot slot = listenerMap.get(listener);
-
 		return slot == null ? false : slot.getListener().equals(listener);
 	}
 	
@@ -222,8 +150,7 @@ public class Signal implements ISignalOwner
 	 * @return the number of listenerMap currently registered to this Signal
 	 */
 	@Override
-	public int numListeners ()
-	{
+	public int numListeners() {
 		return listenerMap.size();
 	}
 }
