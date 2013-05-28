@@ -14,7 +14,7 @@ import junit.framework.TestCase;
 
 import org.junit.Test;
 
-import com.paulm.jsignal.test.SignalListener;
+import jsignal.test.SignalListener;
 
 public class SignalTest extends TestCase {
 

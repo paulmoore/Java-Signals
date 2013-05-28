@@ -17,7 +17,7 @@ import java.util.Iterator;
  * 
  * This is a port of Robert Penner's Signals for ActionScript 3.0
  * 
- * @see com.paulm.jsignal
+ * @see jsignal.Signal
  */
 final class WeakSignal extends Signal {
 	

@@ -16,7 +16,7 @@ import java.util.List;
 
 import org.junit.Test;
 
-import com.paulm.jsignal.test.SignalListener;
+import jsignal.test.SignalListener;
 
 public class WeakSignalTest {
 

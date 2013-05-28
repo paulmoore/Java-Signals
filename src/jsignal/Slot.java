@@ -5,9 +5,9 @@ package jsignal;
 import java.lang.reflect.Method;
 
 class Slot implements ISlot {
-	private Object listener;
-	private Method delegate;
-	private boolean addOnce;
+	private final Object listener;
+	private final Method delegate;
+	private final boolean addOnce;
 	
 	public Slot(Object listener, Method delegate, boolean addOnce) {
 		this.listener = listener;

@@ -74,8 +74,8 @@ public final class PrioritySignal <E extends Comparable<E>> extends Signal {
 		return previous;
 	}
 	
-	/* (non-Javadoc)
-	 * @see com.paulm.jsignal.Signal#add(java.lang.Object, java.lang.String, boolean)
+	/**
+	 * @see jsignal.Signal#add(java.lang.Object, java.lang.String, boolean)
 	 */
 	@Override
 	public Object add(Object listener, String callback, boolean addOnce) {
@@ -96,16 +96,16 @@ public final class PrioritySignal <E extends Comparable<E>> extends Signal {
 		return add(listener, callback, false, priority);
 	}
 	
-	/* (non-Javadoc)
-	 * @see com.paulm.jsignal.Signal#add(java.lang.Object, java.lang.String)
+	/**
+	 * @see jsignal.Signal#add(java.lang.Object, java.lang.String)
 	 */
 	@Override
 	public Object add (Object listener, String callback) {
 		return add(listener, callback, false, null);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.paulm.jsignal.Signal#remove(java.lang.Object)
+	/**
+	 * @see jsignal.Signal#remove(java.lang.Object)
 	 */
 	@Override
 	public boolean remove(Object listener) {
@@ -122,8 +122,8 @@ public final class PrioritySignal <E extends Comparable<E>> extends Signal {
 		return false;
 	}
 	
-	/* (non-Javadoc)
-	 * @see com.paulm.jsignal.Signal#removeAll()
+	/**
+	 * @see jsignal.Signal#removeAll()
 	 */
 	@Override
 	public void removeAll() {
@@ -131,8 +131,8 @@ public final class PrioritySignal <E extends Comparable<E>> extends Signal {
 		listenerQueue.clear();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.paulm.jsignal.Signal#dispatch(java.lang.Object[])
+	/**
+	 * @see jsignal.Signal#dispatch(java.lang.Object[])
 	 */
 	@Override
 	public void dispatch(Object... args) {

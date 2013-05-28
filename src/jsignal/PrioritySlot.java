@@ -5,7 +5,7 @@ package jsignal;
 import java.lang.reflect.Method;
 
 final class PrioritySlot <E extends Comparable<E>> extends Slot implements Comparable<PrioritySlot<E>> {
-	private E priority;
+	private final E priority;
 	
 	public PrioritySlot(Object listener, Method delegate, boolean addOnce, E priority) {
 		super(listener, delegate, addOnce);

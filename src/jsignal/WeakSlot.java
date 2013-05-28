@@ -6,9 +6,9 @@ import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 
 final class WeakSlot implements ISlot {
-	private WeakReference<Object> listenerReference;
-	private Method delegate;
-	private boolean addOnce;
+	private final WeakReference<Object> listenerReference;
+	private final Method delegate;
+	private final boolean addOnce;
 	
 	public WeakSlot(Object listener, Method delegate, boolean addOnce) {
 		listenerReference = new WeakReference<Object>(listener);

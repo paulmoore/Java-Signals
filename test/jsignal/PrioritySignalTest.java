@@ -12,7 +12,7 @@ import junit.framework.TestCase;
 import org.junit.Test;
 import org.mockito.InOrder;
 
-import com.paulm.jsignal.test.SignalListener;
+import jsignal.test.SignalListener;
 
 public class PrioritySignalTest extends TestCase {
 
